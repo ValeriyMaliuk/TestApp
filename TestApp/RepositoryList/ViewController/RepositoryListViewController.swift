@@ -17,7 +17,7 @@ class RepositoryListViewController: UIViewController {
     private var viewModel: RepositoryListViewModel!
     
     //MARK: - Public properties
-    public weak var coordinator: Coordinator!
+    weak var coordinator: Coordinator!
     
     //MARK: - Lifecycle
     override func viewDidLoad() {
@@ -32,34 +32,35 @@ class RepositoryListViewController: UIViewController {
     func setViewModel(_ vm: RepositoryListViewModel) {
         viewModel = vm
     }
-}
-
-//MARK: - ViewModel
-private extension RepositoryListViewController {
     
+    //MARK: - ViewModel
     private func bindToViewModel() {
         self.viewModel.didUpdate = viewModelDidUpdate
-        self.viewModel.didError = viewModelDidError
+        self.viewModel.didReceiveError = viewModelDidReceiveError
     }
     
-    private func viewModelDidUpdate(viewModel: RepositoryListViewModel) {
-        title = self.viewModel.title
-        navigationItem.rightBarButtonItem?.isEnabled = !self.viewModel.isUpdating
-        tableView.reloadData()
+    private lazy var viewModelDidUpdate: (RepositoryListViewModel) -> () = { [weak self] _ in
+        guard let `self` = self else { return }
+        
+        self.title = self.viewModel.title
+        self.navigationItem.rightBarButtonItem?.isEnabled = !self.viewModel.isUpdating
+        self.tableView.reloadData()
     }
     
-    private func viewModelDidError(_ error: Error) {
+    private lazy var viewModelDidReceiveError: (Error) -> () = { [weak self] error in
+        guard let `self` = self else { return }
+        
         let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-        let retryAction = UIAlertAction(title: "Retry", style: .default) { [weak self] _ in
-            self?.reloadData()
+        let retryAction = UIAlertAction(title: "Retry", style: .default) { _ in
+            self.reloadData()
         }
         
         alert.addAction(cancelAction)
         alert.addAction(retryAction)
         
-        present(alert, animated: true, completion: nil)
+        self.present(alert, animated: true, completion: nil)
     }
     
     private func reloadData() {

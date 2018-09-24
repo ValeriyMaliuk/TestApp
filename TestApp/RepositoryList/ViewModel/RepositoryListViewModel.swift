@@ -12,7 +12,7 @@ class RepositoryListViewModel {
     private var dataProvider: RepositoryListDataProvider
     
     //MARK: - Public properties
-    var didError: ((Error) -> ())?
+    var didReceiveError: ((Error) -> ())?
     var didUpdate: ((RepositoryListViewModel) -> ())?
     
     private(set) var repositoryCellViewModelList: [RepositoryTableCellViewModel] = []
@@ -49,7 +49,7 @@ class RepositoryListViewModel {
             failure: {  [weak self] (error) in
                 guard let `self` = self else { return }
                 
-                self.didError?(error)
+                self.didReceiveError?(error)
                 self.isUpdating = false
             }
         )
